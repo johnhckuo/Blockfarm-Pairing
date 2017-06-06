@@ -1,0 +1,55 @@
+
+.index{
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100vw;
+  height: 100vh;
+
+}
+
+.login{
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100vw;
+  height: 100vh;
+  top:0px;
+}
+
+.form{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width:20%;
+  height: 80%;
+}
+
+.formElement{
+  display: flex;
+  flex-direction: row;
+  margin-bottom: 30px;
+  justify-content: center;
+  align-items: center;
+}
+
+.formElement label{
+  line-height: 2;
+  margin-right:10px;
+  width:50%;
+  text-align: center;
+}
+
+.glyphicon{
+  top:0px;
+}
+
+.resultElement{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}

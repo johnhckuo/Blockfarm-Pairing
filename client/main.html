@@ -1,0 +1,93 @@
+<head>
+  <title>BlockFarm-Dashboard</title>
+</head>
+
+<body>
+</body>
+
+<template name="header">
+  <nav class="navbar navbar-default">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="#">Dashboard</a>
+    </div>
+    <ul class="nav navbar-nav">
+      <li class="active"><a href="/">Home</a></li>
+      <li><a href="/manage">Manage</a></li>
+      <li class="logout"><a href="/">Logout</a></li>
+      <!-- <li><a href="#">Page 2</a></li>
+      <li><a href="#">Page 3</a></li> -->
+    </ul>
+  </div>
+</nav>
+</template>
+
+<template name="index">
+  {{> header}}
+  {{# if loggedIn}}
+  <div class="index">
+    <div class="form">
+      <div class='formElement'>
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <td>id</td>
+              <td>Visited Properties</td>
+              <td>Visited Owners</td>
+            </tr>
+          </thead>
+          <tbody>
+
+          </tbody>
+        </table>
+      </div>
+      <div class='resultElement'>
+          <button type="button" name="button" class = "btn btn-info matchmaking">Matchmaking</button>
+          Origin Entry Point: <span class="origin"></span>
+          <h3>Matchmaking Result: </h3>
+          <hr>
+          Visited Properties: <span class="property"></span>
+          Visited Owners: <span class="owner"></span>
+
+      </div>
+    </div>
+
+  </div>
+  {{else}}
+    {{> login}}
+  {{/if}}
+</template>
+
+<template name="login">
+  <div class="login">
+    <div class="form">
+      <div class='formElement'>
+          <label for="address">username </label>
+          <div class="input-group">
+            <span class="input-group-addon glyphicon glyphicon-envelope"></span>
+            <input type="text" class="form-control" name= "token">
+          </div>
+      </div>
+      <div class='formElement'>
+          <label for="address">password </label>
+          <div class="input-group">
+            <span class="input-group-addon glyphicon glyphicon-lock"></span>
+            <input type="password" class="form-control" name = "private">
+          </div>
+      </div>
+      <button type="submit" class = "btn btn-primary submit" name="button">Login</button>
+    </div>
+
+  </div>
+</template>
+
+<template name="manage">
+  {{> header}}
+  {{#if loggedIn}}
+      <div class="manage">
+        manage
+      </div>
+  {{else}}
+      Permission Denied
+  {{/if}}
+</template>
