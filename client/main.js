@@ -21,7 +21,8 @@ Template.index.events({
 
   },
   'click .matchmaking':async function(e){
-      var res = await Meteor.call("matchmaking");
+      var res = await callPromise("matchmaking");
+      alert(res);
   }
 
 })

@@ -39,5 +39,7 @@ Meteor.methods({
   'matchmaking':function(){
 
       var res = Promise.await(findOrigin());
+      console.log(res);
+      return res;
   }
 });
