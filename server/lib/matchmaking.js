@@ -132,7 +132,8 @@ findOrigin = function(){
     success = findVisitNode(origin);
 
     console.log("Entry Point Found: #"+origin);
-    //$(".origin").html(origin);
+    //return "success";
+    return success;
 }
 
 var checkExist = function(elem, data){
@@ -177,7 +178,7 @@ var searchNeighborNodes = function(visitNode){
         }
 
         if (k >= length-1){
-            matchFail();
+            return matchFail();
         }
 
 
@@ -192,15 +193,16 @@ var searchNeighborNodes = function(visitNode){
 
 var findVisitNode = function(visitNode){
 
-    var goThroughList = [];
 
-    goThroughList= searchNeighborNodes(visitNode);
+    var goThroughList= searchNeighborNodes(visitNode);
+    if (goThroughList == "Fail"){
+      return matchFail();
+    }
     goThroughList = sort(goThroughList);
 
 
     if (goThroughList[0].priority <= 0){
-      matchFail();
-      return "Fail";
+      return matchFail();
     }
 
     var flag = false;
@@ -215,8 +217,7 @@ var findVisitNode = function(visitNode){
         //if (!flag && j == (getPropertyLength(1)-1)){
         if (!flag && j == properties.length-1){
 
-            matchFail();
-            return "Fail";
+            return matchFail();
         }
     }
 
@@ -224,14 +225,16 @@ var findVisitNode = function(visitNode){
     visitedCount++;
     visitedProperty[visitedCount] = goThroughList[visitIndex];
     //visitedOwner[visitedCount] = properties[goThroughList[visitIndex]].owner
-    for (var h = 0 ; h < visitedProperty.length ; h++){
-        //visitedOwners.push(Promise.await(callContract("usingProperty", "getPropertiesOwner", [visitedProperty[h]])));
-        visitedOwner.push(properties[visitedProperty[h].id].owner);
-        visitedPriority.push(visitedProperty[h].priority);
-    }
+
 
     if (goThroughList[visitIndex].id == origin){
+        console.log("----------------------------Success-----------------------------");
 
+        for (var h = 0 ; h < visitedProperty.length ; h++){
+            //visitedOwners.push(Promise.await(callContract("usingProperty", "getPropertiesOwner", [visitedProperty[h]])));
+            visitedOwner.push(properties[visitedProperty[h].id].owner);
+            visitedPriority.push(visitedProperty[h].priority);
+        }
 
         //var matchId = Promise.await(callContract("Matchmaking", "getMatchMakingLength", []));
         var matchId = matches.length;
@@ -243,7 +246,7 @@ var findVisitNode = function(visitNode){
         tempJson.result = "null";
 
 
-        tempJson.visitedOwner = visitedOwner;
+        tempJson.visitedOwners = visitedOwner;
         tempJson.visitedProperties = visitedProperty;
         tempJson.visitedPriorities = visitedPriority;
         matches.push(tempJson);
@@ -252,12 +255,20 @@ var findVisitNode = function(visitNode){
         // }
         //$(".property").html(visitedProperty);
         //$(".owner").html(visitedOwner);
-        matchSuccess();
-        return "Success";
+        return matchSuccess();
 
     }else{
-        while (findVisitNode(goThroughList[visitIndex].id) == "Fail"){
-            matchFail();
+        if (visitNode == origin){
+          console.log("-------------Commence Node Searching Process---------------");
+        }
+        console.log("Current Node :"+goThroughList[visitIndex].id)
+        while (true){
+            if (findVisitNode(goThroughList[++visitIndex].id) == "Fail"){
+              console.log("Fail at"+ goThroughList[visitIndex-1].id);
+              return matchFail();
+            }else{
+              break;
+            }
         }
     }
 
@@ -291,12 +302,13 @@ var matchFail = function(){
   console.log("======================Fail======================");
   console.log(visitedProperty);
   console.log(visitedOwner);
+  return "Fail";
 }
 
 var matchSuccess = function(){
-  console.log("======================Success======================");
   console.log(visitedProperty);
   console.log(visitedOwner);
+  return "Success";
 }
 
 
