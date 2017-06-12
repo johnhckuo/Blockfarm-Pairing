@@ -1,4 +1,3 @@
-
 .index{
   position: absolute;
   display: flex;
@@ -52,4 +51,145 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
+}
+
+
+
+/*  empowerment  */
+
+.matchmaking{
+  width:30vw;
+  height:95vh;
+  float:right;
+}
+
+.matchmaking h2{
+  color: #7D89DE;
+  font-size: xx-large;
+}
+
+.matchmaking > div{
+  position:absolute;
+  flex-direction: column;
+  padding:50px;
+  padding-top:100px;
+  width:30vw;
+  height:100%;
+  background: #0D5661;
+  color:#E7E6E6;
+  border: 1px solid black;
+  text-align: center;
+  font-size:medium;
+}
+
+.empowerPanel{
+  transform: translateX(30vw);
+}
+
+.panelContainer{
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+
+}
+
+.panelContainer *{
+    margin-top:30px;
+    margin-right:15px;
+
+}
+
+/*.empower_transition{
+  transition: transform 1s;
+  transform: scale(0.8);
+
+}*/
+
+.empower_show{
+  transition: transform 1s;
+  transform: translateX(0vw);
+
+}
+
+
+.empowerContent{
+  color: #7D89DE;
+  font-size: medium;
+}
+
+.empowerContent input{
+  margin-bottom: 15px;
+  color: black;
+}
+
+.empowerContent label{
+  margin-bottom: 15px;
+  color: #ccc;
+  font-size: large;
+}
+
+.empowerContent button{
+  margin-bottom: 15px;
+}
+
+.empowerment button{
+  color: black;
+}
+
+input[type="range"]{
+  -webkit-appearance: none;
+  border-radius:2px;
+  width:200px;
+  height:3px;
+  box-shadow:inset #ebb 0 0 5px;
+  outline : none;
+  transition:.1s;
+}
+
+input[type="range"]::-webkit-slider-thumb{
+  -webkit-appearance: none;
+  width:10px;
+  height:10px;
+  background:#7D89DE;
+  border-radius:50%;
+  transition:.1s;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover,
+input[type="range"]::-webkit-slider-thumb:active{
+  width:16px;
+  height:16px;
+}
+
+.empowermentContent input{
+  display: inline-block;
+  color:black;
+}
+
+.hiddenDIV{
+  position: relative;
+  background-color: rgba(0,0,0,0.8);
+  width:50vw;
+  height:50vh;
+  margin-left: auto;
+  margin-right: auto;
+  top:50vh;
+  transition: transform 1s;
+  transform: translateY(-30vh);
+  z-index: 100;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  color:white;
+  visibility: collapse;
+}
+
+.displayNewProperty{
+  visibility: visible;
+}
+
+.newProperty_input{
+    color:black;
 }

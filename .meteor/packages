@@ -26,3 +26,4 @@ accounts-password
 promise
 http
 accounts-ui
+ethereum:web3@=0.14.1
