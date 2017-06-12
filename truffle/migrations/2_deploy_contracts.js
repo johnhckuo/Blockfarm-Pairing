@@ -1,8 +1,11 @@
-var ConvertLib = artifacts.require("./ConvertLib.sol");
-var MetaCoin = artifacts.require("./MetaCoin.sol");
+var usingProperty = artifacts.require("./usingProperty.sol");
+var Congress = artifacts.require("./Congress.sol");
+var Matchmaking = artifacts.require("./Matchmaking.sol");
 
 module.exports = function(deployer) {
-  deployer.deploy(ConvertLib);
-  deployer.link(ConvertLib, MetaCoin);
-  deployer.deploy(MetaCoin);
+  return deployer.deploy(Congress).then(function () {
+      return deployer.deploy(Matchmaking);
+  }).then(function(){
+      return deployer.deploy(usingProperty, Congress.address);
+  });
 };
