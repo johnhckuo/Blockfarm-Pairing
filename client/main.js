@@ -6,6 +6,11 @@ import { Meteor } from 'meteor/meteor';
 import './main.html';
 
 Template.index.onCreated(async function helloOnCreated() {
+
+  properties = [];
+  propertyType = [];
+  initData();
+
   var res = await callPromise("init");
   if (Meteor.userId() != null){
     Session.set("loggedIn", true);
@@ -21,8 +26,9 @@ Template.index.events({
 
   },
   'click .matchmaking':async function(e){
-      var res = await callPromise("matchmaking");
-      alert(res);
+      //var res = await callPromise("matchmaking");
+      //alert(res);
+      findOrigin();
   }
 
 })

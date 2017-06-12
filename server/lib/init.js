@@ -60,39 +60,49 @@ propertyType = [
       //rating: [20,50,60,40,60,70,20,40,30,90,80,60,40,50,10,40,30,20,50,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
       //rating: [20,100,60, 100, 100,20,40,50,20,10,20,40,60,10,90,90,30,10,30,50],
       //rating: [0,100,80, 80],
-      rating: [0 ,90, 50, 100, 60]
+      rating: [0 ,90, 50, 100, 60,30,10]
   },
   {
     id:1,
     averageRating:85,
     //rating: [40,50,100, 21, 22, 35, 10, 80,44,10,10,40,50,49,90,90,99,4,3,59],
     //rating: [10,10,100, 10],
-    rating: [0, 10, 30, 50, 60]
+    rating: [0, 10, 30, 50, 60, 20,10,2]
   },
   {
     id:2,
     averageRating:85,
     //rating: [60,30,20,100, 70, 10,50,60,40,40,60,70,80,90,50,10,20,10,90,2],
-    rating: [0,100, 10,20, 50],
+    rating: [0,100, 10,20, 50, 90,10, 1],
 
   },
   {
     id:3,
     averageRating:65,
     //rating: [100,50,10,50,0,70,50,10,50,60,70,50,10,50,60,70,50,10,50,60],
-    rating: [0,90, 40, 60, 70],
+    rating: [0,90, 40, 60, 70,30,10,8],
 
   },
   {
     id:4,
     averageRating:55,
-    rating: [30,10, 70 , 80, 80],
+    rating: [30,10, 80 , 80, 80,40, 10,9],
   },
-  // {
-  //   id:5,
-  //   averageRating:70,
-  //   rating: [30,20,90,20,10,10,60,90,39,59,19,59,100,100,45,38,59,69,79,59,29],
-  // },
+  {
+    id:5,
+    averageRating:55,
+    rating: [0,10, 80 , 80, 80,10, 100,10],
+  },
+  {
+    id:6,
+    averageRating:70,
+    rating: [0,20,90,20,10,10,10,100],
+  },
+  {
+    id:7,
+    averageRating:70,
+    rating: [0,20,90,20,10,100,10,10],
+  },
   // {
   //   id:6,
   //   averageRating:70,
@@ -139,6 +149,30 @@ properties = [
   {name : "dd",
    owner: 4,
    type:4,
+   count:2,
+   tradeable:2,
+   isTrading:false
+
+  },
+  {name : "dd",
+   owner: 5,
+   type:5,
+   count:2,
+   tradeable:2,
+   isTrading:false
+
+  },
+  {name : "dd",
+   owner: 6,
+   type:6,
+   count:2,
+   tradeable:2,
+   isTrading:false
+
+  },
+  {name : "dd",
+   owner: 7,
+   type:7,
    count:2,
    tradeable:2,
    isTrading:false
