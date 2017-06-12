@@ -4,37 +4,85 @@ import colors from 'colors';
 
 colors.enabled = true;
 
-var callContract = function(contract, method, args){
-  var req = prefix;
-  switch (contract){
-    case "GameCore":
-      req += gameCore;
-      break;
-    case "Congress":
-      req += congress;
-      break;
-    case "usingProperty":
-      req += usingProperty;
-      break;
-    case "GameProperty":
-      req += gameProperty;
-      break;
-    case "Matchmaking":
-      req += matchmaking;
-      break;
-    case "PlayerSetting":
-      req += playerSetting;
-      break;
-    default:
-      return "error";
-  }
-  req += "/"+method+ "?token=" + token;
-  updateCall.data.params = args;
-  console.log("request url: "+req);
-  console.log("request args: "+updateCall);
-  return Meteor.http.call("POST",req, updateCall);
+initData = function(){
+
+  usingPropertyInstance.getPropertyTypeLength.call({ from: web3.eth.accounts[0], gas: 2000000 }, function (err, res) {
+      if (err) {
+          console.log(err);
+      }
+      else {
+          propertyTypeLength = res.c[0];
+          for (var i = 0; i < propertyTypeLength; i++) {
+              usingPropertyInstance.getPropertyType.call(i, { from: web3.eth.accounts[0], gas: 2000000 }, function (err, res) {
+                  if (err) {
+                      console.log(err);
+                  }
+                  else {
+                      console.log(res);
+                      pType = { id: res[1].c[0], name: web3.toUtf8(res[0]), avg: res[2].c[0], ratings: res[3] };
+                      propertyType.push(pType);
+                      console.log(propertyType);
+                  }
+              });
+          }
+      }
+  });
+
+  usingPropertyInstance.getPropertiesLength.call({ from: web3.eth.accounts[0], gas: 2000000 }, function (err, res) {
+      if (err) {
+          console.log(err);
+      }
+      else {
+          propertyLength = res.c[0];
+          for (var i = 0; i < propertyLength; i++) {
+              usingPropertyInstance.getProperty.call(i, { from: web3.eth.accounts[0], gas: 2000000 }, function (err, res) {
+                  if (err) {
+                      console.log(err);
+                  }
+                  else {
+                      property = { id: res[0].c[0], type: res[1].c[0], name: web3.toUtf8(res[2]), count: res[3].c[0], tradeable: res[4].c[0], img: web3.toUtf8(res[5])};
+                      properties.push(property);
+                  }
+              });
+          }
+          console.log(properties);
+
+      }
+  });
 
 }
+
+// var callContract = function(contract, method, args){
+//   var req = prefix;
+//   switch (contract){
+//     case "GameCore":
+//       req += gameCore;
+//       break;
+//     case "Congress":
+//       req += congress;
+//       break;
+//     case "usingProperty":
+//       req += usingProperty;
+//       break;
+//     case "GameProperty":
+//       req += gameProperty;
+//       break;
+//     case "Matchmaking":
+//       req += matchmaking;
+//       break;
+//     case "PlayerSetting":
+//       req += playerSetting;
+//       break;
+//     default:
+//       return "error";
+//   }
+//   req += "/"+method+ "?token=" + token;
+//   updateCall.data.params = args;
+//   console.log("request url: "+req);
+//   console.log("request args: "+updateCall);
+//   return Meteor.http.call("POST",req, updateCall);
+//
+// }
 
 // for matchmaking
 
@@ -75,10 +123,10 @@ var sort = function(list){
 var calculateAverage = function(){
   for (var i = 0 ; i < propertyType.length ;i++){
     var temp = 0;
-    for (var j = 0 ; j < propertyType[i].rating.length; j++){
-      temp += propertyType[i].rating[j];
+    for (var j = 0 ; j < propertyType[i].ratings.length; j++){
+      temp += propertyType[i].ratings[j];
     }
-    propertyType[i].averageRating = temp / propertyType[i].rating.length;
+    propertyType[i].avg = temp / propertyType[i].ratings.length;
   }
 }
 
@@ -115,8 +163,8 @@ findOrigin = function(){
         }
 
         var owner = properties[i].owner;
-        var averageRating = propertyType[properties[i].type].averageRating;
-        var self_Importance = propertyType[properties[i].type].rating[owner];
+        var averageRating = propertyType[properties[i].type].avg;
+        var self_Importance = propertyType[properties[i].type].ratings[owner];
         /*
         var owner = Promise.await(callContract("usingProperty", "getPartialProperty", [i]));
         var averageRating = Promise.await(callContract("usingProperty", "getPropertyTypeAverageRating", [i]));
@@ -136,7 +184,10 @@ findOrigin = function(){
     priorityList = sort(priorityList);
 
 
-
+    if (priorityList.length == 0){
+      matchFail(2);
+      return "Fail";
+    }
     origin = priorityList[0].id;
 
     visitedCount = 0;
@@ -200,7 +251,7 @@ var searchNeighborNodes = function(visitNode){
           priority:diff
         });
     }
-    console.log(colors.magenta("Current Node :"+visitNode));
+    console.log("%c[System Log] Current Node :"+visitNode, "color:#FF44AA");
 
     if (goThroughList.length == 0){
         return matchFail(0);
@@ -269,7 +320,7 @@ var findVisitNode = function(){
       }else{
         visitedCounts[visitingIndex]++;
         visitedProperty[visitedProperty.length-1] = totalGoThroughList[visitingIndex][visitedCounts[visitingIndex]];
-        console.log(colors.green('[System Log]')+" Now visiting index: " + visitingIndex +", and now switch to prioity #"+(visitedCounts[visitingIndex]+1)+": "+totalGoThroughList[visitingIndex][visitedCounts[visitingIndex]].id);
+        console.log("%c[System Log] Now visiting index: " + visitingIndex +", and now switch to prioity #"+(visitedCounts[visitingIndex]+1)+": "+totalGoThroughList[visitingIndex][visitedCounts[visitingIndex]].id, "color:#00ff00");
         continue;
 
       }
@@ -286,7 +337,7 @@ var findVisitNode = function(){
       console.log(totalGoThroughList[visitingIndex][0])
       if (totalGoThroughList[visitingIndex].length-1 >= (visitedCounts[visitingIndex]+1)){
         visitedCounts[visitingIndex]++;
-        console.log(colors.green('[System Log]')+" Run out of alternative nodes! Switch to previous index #"+ visitingIndex +" node "+totalGoThroughList[visitingIndex][visitedCounts[visitingIndex]].id);
+        console.log("%c[System Log] Run out of alternative nodes! Switch to previous index #"+ visitingIndex +" node "+totalGoThroughList[visitingIndex][visitedCounts[visitingIndex]].id, "color:#00ff00");
         visitedProperty[visitedProperty.length-1] = totalGoThroughList[visitingIndex][visitedCounts[visitingIndex]];
 
         flag = false;
@@ -309,7 +360,7 @@ var registerNode = function(){
 
 var verifyNode = function(){
   if (totalGoThroughList[visitingIndex][visitedCounts[visitingIndex]] != undefined && totalGoThroughList[visitingIndex][visitedCounts[visitingIndex]].id == origin && visitingIndex != 0){
-      console.log(colors.yellow("----------------------------Success-----------------------------"));
+      console.log("%c----------------------------Success-----------------------------", "color:#00ffff");
 
       for (var h = 0 ; h < visitedProperty.length ; h++){
           visitedOwner.push(properties[visitedProperty[h].id].owner);
@@ -335,7 +386,7 @@ var verifyNode = function(){
 
   }else{
       if (visitingIndex == 1){
-        console.log(colors.yellow("-------------Commence Node Searching Process---------------"));
+        console.log("%c-------------Commence Node Searching Process---------------", "color:#00ffff");
       }
       return false;
 
@@ -345,16 +396,19 @@ var verifyNode = function(){
 
 var returnPriority = function(visitNode, i){
     var owner = properties[i].owner;
-    return propertyType[properties[visitNode].type].rating[owner];
+    return propertyType[properties[visitNode].type].ratings[owner];
 }
 
 var matchFail = function(errCode){
   switch (errCode){
     case 0:
-      console.log(colors.red('[Error Log]')+" No available neighbor nodes");
+      console.log("%c[Error Log] No available neighbor nodes", "color: #ff0000");
       break;
     case 1:
-      console.log(colors.red('[Error Log]')+" No unvisited neighbor nodes left");
+      console.log("%c[Error Log] No unvisited neighbor nodes left", "color: #ff0000");
+      break;
+    case 2:
+      console.log("%c[Error Log] No origin entry points found, Abort!", "color: #ff0000");
       break;
   }
   return 0;
@@ -413,13 +467,13 @@ function transferOwnership(m_Id){
         //cancel isTrading status
         Promise.await(callContract("usingProperty", "updateTradingStatus", [currentPID, false]));
 
-        var p_Type = Promise.await(callContract("usingProperty", "getPropertyType_Matchmaking", [matches[m_Id].visitedProperties[i]]));
-        if (p_Type > 29 && p_Type < 40){
-            Promise.await(callContract("Congress", "updateGuardMatchId", [matches[m_Id].visitedOwners[i], m_Id]));
-            Promise.await(callContract("Congress", "updateGuardId", [matches[m_Id].visitedOwners[i+1], matches[m_Id].visitedOwners[i]]));
-            Promise.await(callContract("Congress", "updateFarmerId", [matches[m_Id].visitedOwners[i], matches[m_Id].visitedOwners[i+1]]));
-
-        }
+        //var p_Type = Promise.await(callContract("usingProperty", "getPropertyType_Matchmaking", [matches[m_Id].visitedProperties[i]]));
+        // if (p_Type > 29 && p_Type < 40){
+        //     Promise.await(callContract("Congress", "updateGuardMatchId", [matches[m_Id].visitedOwners[i], m_Id]));
+        //     Promise.await(callContract("Congress", "updateGuardId", [matches[m_Id].visitedOwners[i+1], matches[m_Id].visitedOwners[i]]));
+        //     Promise.await(callContract("Congress", "updateFarmerId", [matches[m_Id].visitedOwners[i], matches[m_Id].visitedOwners[i+1]]));
+        //
+        // }
     }
 
 }
