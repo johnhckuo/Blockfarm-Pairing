@@ -57,4 +57,19 @@ contract Matchmaking{
         matches[_matchId].visitedCount = _visitedCount;
         matches[_matchId].result = _result;
     }
+
+    function gameCoreMatchingDetail(uint _matchId, int256 _priority, uint _owner, uint _property){
+        matches[_matchId].visitedPriorities.push(_priority);
+        matches[_matchId].visitedOwners.push(_owner);
+        matches[_matchId].visitedProperties.push(_property);
+
+
+        for (uint i = 0 ; i < matches[_matchId].visitedOwners.length ; i++){
+           matches[_matchId].confirmation.push(1);
+           matches[_matchId].confirmed.push(false);
+        }
+
+
+
+    }
 }

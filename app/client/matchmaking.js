@@ -3,49 +3,46 @@ import { Promise } from 'meteor/promise';
 import colors from 'colors';
 
 colors.enabled = true;
-
 initData = function(){
 
-  usingPropertyInstance.getPropertyTypeLength.call({ from: web3.eth.accounts[0], gas: 2000000 }, function (err, res) {
+  usingPropertyInstance.getPropertyTypeLength.call({ from: web3.eth.accounts[currentAccount], gas: 2000000 }, function (err, res) {
       if (err) {
           console.log(err);
       }
       else {
           propertyTypeLength = res.c[0];
           for (var i = 0; i < propertyTypeLength; i++) {
-              usingPropertyInstance.getPropertyType.call(i, { from: web3.eth.accounts[0], gas: 2000000 }, function (err, res) {
+              usingPropertyInstance.getPropertyType.call(i, { from: web3.eth.accounts[currentAccount], gas: 2000000 }, function (err, res) {
                   if (err) {
                       console.log(err);
                   }
                   else {
-                      console.log(res);
                       pType = { id: res[1].c[0], name: web3.toUtf8(res[0]), avg: res[2].c[0], ratings: res[3] };
                       propertyType.push(pType);
-                      console.log(propertyType);
+
                   }
               });
           }
       }
   });
 
-  usingPropertyInstance.getPropertiesLength.call({ from: web3.eth.accounts[0] }, function (err, res) {
+  usingPropertyInstance.getPropertiesLength.call({ from: web3.eth.accounts[currentAccount] }, function (err, res) {
       if (err) {
           console.log(err);
       }
       else {
           propertyLength = res.c[0];
           for (var i = 0; i < propertyLength; i++) {
-              usingPropertyInstance.getProperty.call(i, { from: web3.eth.accounts[0] }, function (err, res) {
+              usingPropertyInstance.getProperty.call(i, { from: web3.eth.accounts[currentAccount] }, function (err, res) {
                   if (err) {
                       console.log(err);
                   }
                   else {
-                      console.log(res);
-                      property = { id: res[0].c[0], type: res[1].c[0], name: web3.toUtf8(res[2]), count: res[3].c[0], tradeable: res[4].c[0]};
+                      property = { id: res[0].c[0], type: res[1].c[0], name: web3.toUtf8(res[2]), count: res[3].c[0], tradeable: res[4].c[0], owner: res[5].c[0]};
                       properties.push(property);
-                      console.log(property);
 
                   }
+
               });
           }
 
@@ -94,6 +91,8 @@ var actualVisitIndex = [];
 var origin;
 var visitedOwner = [];
 var visitedPriority = [];
+var visitedTradeable = [];
+
 
 // for confirm
 
@@ -143,6 +142,7 @@ findOrigin = function(){
     origin = null;
     visitedOwner = [];
     visitedPriority = [];
+    visitedTradeable = [];
 
     visitedCounts = [];
     totalGoThroughList = [];
@@ -168,7 +168,8 @@ findOrigin = function(){
 
         var owner = properties[i].owner;
         var averageRating = propertyType[properties[i].type].avg;
-        var self_Importance = propertyType[properties[i].type].ratings[owner];
+        var self_Importance = propertyType[properties[i].type].ratings[owner].c[0];
+
         /*
         var owner = Promise.await(callContract("usingProperty", "getPartialProperty", [i]));
         var averageRating = Promise.await(callContract("usingProperty", "getPropertyTypeAverageRating", [i]));
@@ -176,17 +177,17 @@ findOrigin = function(){
         */
         var diff = averageRating - self_Importance;
 
-        if (diff <= 0){
+        if (diff < 0){
             continue;
         }
 
         priorityList.push({
           id:i,
-          priority:diff
+          priority:diff,
+          tradeable:properties[i].tradeable
         });
     }
     priorityList = sort(priorityList);
-
     if (priorityList.length == 0){
       matchFail(2);
       return "Fail";
@@ -195,7 +196,7 @@ findOrigin = function(){
     origin = priorityList[0].id;
 
     visitedCount = 0;
-    visitedProperty.push({id : origin, priority : priorityList[0].priority})
+    visitedProperty.push({id : origin, priority : priorityList[0].priority, tradeable:priorityList[0].tradeable})
 
     totalGoThroughList.push(priorityList);
     visitedCounts.push(0);
@@ -245,17 +246,19 @@ var searchNeighborNodes = function(visitNode){
 
         var diff = returnPriority(visitNode, i);
 
-        if (diff <= 0){
+        if (diff < 0){
           //this need to be modified to user config
           continue;
         }
 
         goThroughList.push({
           id:i,
-          priority:diff
+          priority:diff,
+          tradeable:properties[i].tradeable
         });
     }
     console.log("%c[System Log] Current Node :"+visitNode, "color:#FF44AA");
+    console.log(goThroughList)
 
     if (goThroughList.length == 0){
         return matchFail(0);
@@ -365,13 +368,17 @@ var registerNode = function(){
 var verifyNode = function(){
   if (totalGoThroughList[visitingIndex][visitedCounts[visitingIndex]] != undefined && totalGoThroughList[visitingIndex][visitedCounts[visitingIndex]].id == origin && visitingIndex != 0){
       console.log("%c----------------------------Success-----------------------------", "color:#00ffff");
-
+      var visitedProperty_temp = [];
       for (var h = 0 ; h < visitedProperty.length ; h++){
+          visitedProperty_temp.push(visitedProperty[h].id);
           visitedOwner.push(properties[visitedProperty[h].id].owner);
           visitedPriority.push(visitedProperty[h].priority);
+          visitedTradeable.push(visitedProperty[h].tradeable);
       }
 
-      console.log("Visited Property "+visitedOwner);
+      $(".property").html(visitedProperty_temp);
+      $(".owner").html(visitedOwner);
+      console.log("Visited Owner "+visitedOwner);
       console.log("Visited priority "+visitedPriority);
 
       var matchId = matches.length;
@@ -381,23 +388,69 @@ var verifyNode = function(){
       tempJson.visitedCount = visitedCounts;
       tempJson.result = "null";
 
-      tempJson.visitedOwners = visitedOwner;
-      tempJson.visitedProperties = visitedProperty;
-      tempJson.visitedPriorities = visitedPriority;
+      tempJson.visitedOwners = [];
+      tempJson.visitedProperties = [];
+      tempJson.visitedPriorities = [];
+      tempJson.visitedTradeable = [];
+
+      for (var i = 0 ; i < visitedProperty.length; i++){
+        tempJson.visitedProperties.push(visitedProperty[i].id);
+
+        if (visitedOwner[i].c){
+          tempJson.visitedOwners.push(visitedOwner[i].c[0]);
+
+        }else{
+          tempJson.visitedOwners.push(visitedOwner[i]);
+
+        }
+
+        if (visitedPriority[i].c){
+          tempJson.visitedPriorities.push(visitedPriority[i].c[0]);
+
+        }else{
+          tempJson.visitedPriorities.push(visitedPriority[i]);
+
+        }
+
+        console.log(visitedTradeable[i])
+        if (visitedTradeable[i].c){
+          tempJson.visitedTradeable.push(visitedTradeable[i].c[0]);
+
+        }else{
+          tempJson.visitedTradeable.push(visitedTradeable[i]);
+
+        }
+
+
+      }
+      console.log("yo---")
       matches.push(tempJson);
 
+      console.log(tempJson.visitedProperties);
+      console.log(tempJson.visitedPriorities);
 
-      MatchmakingInstance.gameCoreMatchingInit(matchId, visitedOwner.length, "null", function(err, res){
+      console.log(tempJson.visitedOwners);
+
+      MatchmakingInstance.gameCoreMatchingInit(matchId, visitedOwner.length, "null", {from:web3.eth.accounts[currentAccount], gas:100000}, function(err, res){
         if (err){
           console.log(err);
+        }else{
+          gameCoreMatchingDetail(matchId, tempJson.visitedPriorities, tempJson.visitedOwners, tempJson.visitedProperties);
+
+          MatchmakingInstance.gameCoreMatchingDetail(matchId, tempJson.visitedPriorities, tempJson.visitedOwners, tempJson.visitedProperties, tempJson.visitedTradeable,  {from:web3.eth.accounts[currentAccount], gas:2000000}, function(err, res){
+            if (err){
+              console.log(err);
+            }
+            return true;
+
+          });
         }
-        gameCoreMatchingDetail(matchId, visitedPriority, visitedOwner, visitedProperty);
 
 
       });
-
-
       return true;
+
+
 
   }else{
       if (visitingIndex == 1){
@@ -482,9 +535,9 @@ function checkConfirmation(){
     });
 }
 
-function transferOwnership(m_Id){
+transferOwnership = function(m_Id){
     var length;
-    usingPropertyInstance.getPropertyTypeLength.call({from:web3.eth.accounts[0]}, function(err, res){
+    usingPropertyInstance.getPropertyTypeLength.call({from:web3.eth.accounts[currentAccount]}, function(err, res){
       if (err){
         console.log(err);
       }else{
@@ -496,12 +549,12 @@ function transferOwnership(m_Id){
             var propertyType = currentPID % length;
             var receivedPID = s_Id*length + propertyType;
 
-            usingPropertyInstance.updateOwnershipStatus([receivedPID, currentPID], {from:web3.eth.accounts[0]}, function(err, res){
+            usingPropertyInstance.updateOwnershipStatus(receivedPID, currentPID, {from:web3.eth.accounts[currentAccount], gas:2000000}, function(err, res){
               if (err){
                 console.log(err);
               }else{
                 //cancel isTrading status
-                usingPropertyInstance.updateTradingStatus([currentPID, false], {from:web3.eth.accounts[0]}, function(err, res){
+                usingPropertyInstance.updateTradingStatus(currentPID, false, {from:web3.eth.accounts[currentAccount], gas:2000000}, function(err, res){
                   if (err){
                     console.log(err);
 
@@ -519,19 +572,10 @@ function transferOwnership(m_Id){
 }
 
 function gameCoreMatchingDetail(_matchId, _priority, _owner, _property){
-    matches[_matchId].visitedPriorities = _priority;
-    matches[_matchId].visitedOwners = _owner;
-    matches[_matchId].visitedProperties = _property;
-    console.log(matches);
-    matches[_matchId].confirmed = [];
-    matches[_matchId].confirmation = [];
-    matches[_matchId].visitedTradeable = [];
 
     for (var i = 0 ; i < matches[_matchId].visitedOwners.length ; i++){
-       matches[_matchId].confirmation.push(1);
-       matches[_matchId].confirmed.push(false);
        //Promise.await(callContract("usingProperty", "updateTradingStatus", [matches[_matchId].visitedProperties[i], true]));
-       usingPropertyInstance.updateTradingStatus(matches[_matchId].visitedProperties[i].id, true, {from:web3.eth.accounts[0], gas:100000}, function(err,res){
+       usingPropertyInstance.updateTradingStatus(matches[_matchId].visitedProperties[i], true, {from:web3.eth.accounts[currentAccount], gas:1000000}, function(err,res){
          if (err){
            console.log(err);
          }
@@ -540,22 +584,75 @@ function gameCoreMatchingDetail(_matchId, _priority, _owner, _property){
 
     for (var k = 0 ; k < matches[_matchId].visitedOwners.length-1 ; k++){
         //Promise.await(callContract("Congress", "insertMatchesId", [matches[_matchId].visitedOwners[k], _matchId]));
-        CongressInstance.insertMatchesId(matches[_matchId].visitedOwners[k], _matchId, {from: web3.eth.accounts[0], gas:100000}, function(err, res){
+        CongressInstance.insertMatchesId(matches[_matchId].visitedOwners[k], _matchId, {from: web3.eth.accounts[currentAccount], gas:100000}, function(err, res){
           if (err){
             console.log(err);
           }
         });
     }
 
-    for (var l = 0 ; l < matches[_matchId].visitedProperties.length ; l++){
-        usingPropertyInstance.checkTradeable(matches[_matchId].visitedProperties[l].id, {from:web3.eth.accounts[0], gas:100000}, function(err,res){
-          if (err){
-            console.log(err);
-          }else{
-            matches[_matchId].visitedTradeable.push(res.c[0]);
-          }
 
+
+}
+
+
+showConfirmation = async function(s_Id){
+    console.log("triggered");
+    matches = await CongressInstance.getStakeholderMatches.call(s_Id, { from:web3.eth.accounts[currentAccount]});
+    var length = matches.length;
+    if (length > 0){
+        $(".systemInfo").css("transform", "translateX(0px)");
+    }else{
+        $(".systemInfo").css("transform", "translateX(600px)");
+        return;
+    }
+
+    for (var i = 0 ; i < length ; i++){
+
+        var data = await MatchmakingInstance.getMatchMaking.call(matches[i].c[0], {from:web3.eth.accounts[currentAccount]});
+        var owners = data[1];
+        var properties = data[2];
+        var tradeables = data[3];
+        var index;
+
+        console.log(data);
+
+        for (var j = 0 ; j < owners.length ; j++){
+            if (s_Id == owners[j].c[0]){
+                index = j;
+            }
+        }
+
+        var previousIndex = (index-1+owners.length)%owners.length
+
+        var previousName = await web3.toUtf8(CongressInstance.getStakeholder.call(parseInt(owners[previousIndex].c[0]), {from:web3.eth.accounts[currentAccount]})[0]);
+        var type_Id = await usingPropertyInstance.getPropertyType_Matchmaking.call(parseInt(properties[previousIndex].c[0]), {from:web3.eth.accounts[currentAccount]});
+        var receiveProperty = await usingPropertyInstance.getPropertyType.call(type_Id, {from:web3.eth.accounts[currentAccount]});
+
+        type_Id = await usingPropertyInstance.getPropertyType_Matchmaking.call(parseInt(properties[index].c[0]), {from:web3.eth.accounts[currentAccount]});
+        var provideProperty = await usingPropertyInstance.getPropertyType.call(type_Id, {from:web3.eth.accounts[currentAccount]});
+
+        var row = $("<div>").attr("class", "matches match"+i);
+        var fromAddr = $("<div>").text("from "+previousName);
+        var receive = $("<div>").text("for " +web3.toUtf8(receiveProperty[0]) + "X" + tradeables[previousIndex].c[0]);
+        var provide = $("<div>").text("You exchange " + web3.toUtf8(provideProperty[0]) + "X" + tradeables[index].c[0]);
+        var checkBtn = $('<input>').attr( {
+            type: 'button',
+            class: "btn btn-info matchesBtn matchBtn"+matches[i].c[0],
+            value: 'Confirm'
         });
+        row.append(provide).append(receive).append(fromAddr).append(checkBtn);
+
+
+
+        $(".systemInfo").append(row);
+
+        var confirmed = await MatchmakingInstance.getMatchMakingConfirmed.call(matches[i].c[0], s_Id, {from:web3.eth.accounts[currentAccount]});
+        if (confirmed){
+            $(".matchBtn"+matches[i].c[0]).prop("value", "Waiting");
+            $(".matchBtn"+matches[i].c[0]).prop("disabled", true);
+
+        }
     }
 
 }

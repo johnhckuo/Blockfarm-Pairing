@@ -6,7 +6,28 @@ import { Meteor } from 'meteor/meteor';
 import './main.html';
 import './matchUI.js';
 
+currentAccount = 0;
+
 Template.index.onCreated(async function helloOnCreated() {
+
+  s_Id = currentAccount;
+  var events = CongressInstance.matchmakingNotify({fromBlock: 0, toBlock: 'latest'});
+  events.watch(function(error, result){
+    console.log("listening")
+    if (result){
+      console.log(result);
+      showConfirmation(0);
+    }
+    // showConfirmation(s_Id);
+  });
+
+  // would get all past logs again.
+  events.get(function(error, logs){
+    if (logs.length >0){
+      console.log(logs);
+    }
+  });
+
 
   properties = [];
   propertyType = [];
@@ -18,7 +39,6 @@ Template.index.onCreated(async function helloOnCreated() {
   }else{
     Session.set("loggedIn", false);
   }
-  console.log(res);
 
 });
 
@@ -28,11 +48,27 @@ Template.index.events({
   '.click .fetch':function(e){
 
   },
-  'click .matchmaking':async function(e){
+  'click .matchmakingBtn':async function(e){
       //var res = await callPromise("matchmaking");
       //alert(res);
       findOrigin();
-  }
+  },
+  'click .confirmingBtn':async function(e){
+      //var res = await callPromise("matchmaking");
+      //alert(res);
+      transferOwnership(0);
+  },
+  'click .matchesBtn':function(event){
+    var m_Id = $(event.target).attr("class").split("matchBtn")[1];
+    MatchmakingInstance.updateConfirmation(m_Id, s_Id, 1, {from:web3.eth.accounts[currentAccount], gas:2000000}, function(err, res){
+      if (err){
+        console.log(err);
+      }
+    });
+
+    $(event.target).prop("value", "Waiting");
+    $(event.target).prop("disabled", true);
+},
 
 })
 

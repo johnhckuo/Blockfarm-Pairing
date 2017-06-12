@@ -42,7 +42,9 @@
         </table>
       </div>
       <div class='resultElement'>
-          <button type="button" name="button" class = "btn btn-info matchmaking">Matchmaking</button>
+          <button type="button" name="button" class = "btn btn-info matchmakingBtn">Matchmaking</button>
+          <button type="button" name="button" class = "btn btn-info confirmingBtn">Check Txs</button>
+
           Origin Entry Point: <span class="origin"></span>
           <h3>Matchmaking Result: </h3>
           <hr>
@@ -56,6 +58,10 @@
   {{else}}
     {{> login}}
   {{/if}}
+
+  <div class="systemInfo">
+    <h2>New Transaction !</h2>
+</div>
 </template>
 
 <template name="login">

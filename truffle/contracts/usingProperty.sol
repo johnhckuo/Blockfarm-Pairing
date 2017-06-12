@@ -41,8 +41,8 @@ contract usingProperty{
         owner = msg.sender;
     }
 
-    function getProperty(uint i) constant returns(uint, uint, bytes32, uint, uint){
-        return ( propertyList[i].id, propertyList[i].propertyType, propertyTypeList[propertyList[i].propertyType].name, propertyList[i].propertyCount, propertyList[i].tradeable);
+    function getProperty(uint i) constant returns(uint, uint, bytes32, uint, uint, uint){
+        return ( propertyList[i].id, propertyList[i].propertyType, propertyList[i].name, propertyList[i].propertyCount, propertyList[i].tradeable, propertyList[i].owner);
     }
 
     function addProperty(bytes32 _name, uint s_Id, uint _propertyCount, bytes32 _extraData, uint _type, uint _tradeable) returns(uint _id){
@@ -72,12 +72,12 @@ contract usingProperty{
     }
 
     function removeProperty(uint _id){
-        if (getPropertiesLength() == 0) throw;        
+        if (getPropertiesLength() == 0) throw;
 
         for (uint i = _id; i<propertyList.length; i++){
             propertyList[i] = propertyList[i+1];
-        }  
-        delete propertyList[propertyList.length-1];      
+        }
+        delete propertyList[propertyList.length-1];
         propertyList.length--;
     }
 

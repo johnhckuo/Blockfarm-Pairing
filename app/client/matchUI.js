@@ -133,29 +133,29 @@ if (Meteor.isClient) {
         //        }
         //    }
         //});
-        //var stakeholderLength = 0;
-        //CongressInstance.getStakeholdersLength.call({ from: web3.eth.accounts[0], gas: 2000000 }, function (err, res) {
-        //    if (err) {
-        //        console.log(err);
-        //    }
-        //    else {
-        //        stakeholderLength = res.c[0];
-        //        console.log(stakeholderLength);
-        //        for (var i = 0; i < stakeholderLength; i++) {
-        //            CongressInstance.getStakeholder(i, { from: web3.eth.accounts[0], gas: 200000 }, function (err, res) {
-        //                if (err) {
-        //                    console.log(err);
-        //                }
-        //                else {
-        //                    var sholder = { id: i, name: web3.toUtf8(res[0]), address: res[1], since: res[2].c[0], matchesId: res[3] };
-        //                    stakeholders.push(sholder);
-        //                    Session.set('stakeholderlist', stakeholders);
-        //                    console.log(sholder);
-        //                }
-        //            });
-        //        }
-        //    }
-        //});
+        var stakeholderLength = 0;
+        CongressInstance.getStakeholdersLength.call({ from: web3.eth.accounts[0], gas: 2000000 }, function (err, res) {
+           if (err) {
+               console.log(err);
+           }
+           else {
+               stakeholderLength = res.c[0];
+               console.log(stakeholderLength);
+               for (var i = 0; i < stakeholderLength; i++) {
+                   CongressInstance.getStakeholder(i, { from: web3.eth.accounts[0], gas: 200000 }, function (err, res) {
+                       if (err) {
+                           console.log(err);
+                       }
+                       else {
+                           var sholder = { id: i, name: web3.toUtf8(res[0]), address: res[1], since: res[2].c[0], matchesId: res[3] };
+                           stakeholders.push(sholder);
+                           Session.set('stakeholderlist', stakeholders);
+                           console.log(sholder);
+                       }
+                   });
+               }
+           }
+        });
         //var propertyLength = 0;
         //usingPropertyInstance.getPropertiesLength.call({ from: web3.eth.accounts[0], gas: 2000000 }, function (err, res) {
         //    if (err) {
@@ -213,12 +213,12 @@ if (Meteor.isClient) {
             usingPropertyInstance.addPropertyType('Real Estate', { from: web3.eth.accounts[0], gas: 2000000 }, function (err, res) { if (err) { console.log(err); } else { console.log(res); } });
             usingPropertyInstance.addProperty('Benz', 0, 1, '', 0, 1, { from: web3.eth.accounts[0], gas: 2000000 }, function (err, res) { if (err) { console.log(err); } else { console.log(res); } });
             usingPropertyInstance.addProperty('SuperDry', 0, 2, '', 1, 1, { from: web3.eth.accounts[0], gas: 2000000 }, function (err, res) { if (err) { console.log(err); } else { console.log(res); } });
-            //usingPropertyInstance.addProperty('Nippon Blue', 0, 1, '', 1, 1, { from: web3.eth.accounts[0], gas: 2000000 }, function (err, res) { if (err) { console.log(err); } else { console.log(res); } });
-            //usingPropertyInstance.addProperty('Toyota', 1, 1, '', 0, 1, { from: web3.eth.accounts[0], gas: 2000000 }, function (err, res) { if (err) { console.log(err); } else { console.log(res); } });
-            //usingPropertyInstance.addProperty('SuperShy', 1, 2, '', 1, 1, { from: web3.eth.accounts[0], gas: 2000000 }, function (err, res) { if (err) { console.log(err); } else { console.log(res); } });
-            //usingPropertyInstance.addProperty('Dorm', 0, 2, '', 2, 1, { from: web3.eth.accounts[0], gas: 2000000 }, function (err, res) { if (err) { console.log(err); } else { console.log(res); } });
-            //usingPropertyInstance.addProperty('Yamaha', 1, 2, '', 0, 2, { from: web3.eth.accounts[0], gas: 2000000 }, function (err, res) { if (err) { console.log(err); } else { console.log(res); } });
-            //usingPropertyInstance.addPropertyType('PC', { from: web3.eth.accounts[0], gas: 2000000 }, function (err, res) { if (err) { console.log(err); } else { console.log(res); } });
+            usingPropertyInstance.addProperty('Nippon Blue', 0, 1, '', 1, 1, { from: web3.eth.accounts[0], gas: 2000000 }, function (err, res) { if (err) { console.log(err); } else { console.log(res); } });
+            usingPropertyInstance.addProperty('Toyota', 1, 1, '', 0, 1, { from: web3.eth.accounts[0], gas: 2000000 }, function (err, res) { if (err) { console.log(err); } else { console.log(res); } });
+            usingPropertyInstance.addProperty('SuperShy', 1, 2, '', 1, 1, { from: web3.eth.accounts[0], gas: 2000000 }, function (err, res) { if (err) { console.log(err); } else { console.log(res); } });
+            usingPropertyInstance.addProperty('Dorm', 0, 2, '', 2, 1, { from: web3.eth.accounts[0], gas: 2000000 }, function (err, res) { if (err) { console.log(err); } else { console.log(res); } });
+            usingPropertyInstance.addProperty('Yamaha', 1, 2, '', 0, 2, { from: web3.eth.accounts[0], gas: 2000000 }, function (err, res) { if (err) { console.log(err); } else { console.log(res); } });
+            usingPropertyInstance.addPropertyType('PC', { from: web3.eth.accounts[0], gas: 2000000 }, function (err, res) { if (err) { console.log(err); } else { console.log(res); } });
         },
         'mouseenter .range, click .range': function (e) {
             var r = $(e.target);

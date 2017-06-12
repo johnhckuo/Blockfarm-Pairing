@@ -5,6 +5,7 @@ contract Congress{
     mapping (address => uint) public stakeholderId;
     Stakeholder[] public stakeholders;
     address owner;
+    event matchmakingNotify(uint, uint);
 
     struct Stakeholder {
         uint256 id;
@@ -53,6 +54,7 @@ contract Congress{
     }
 
     function insertMatchesId(uint s_Id, uint m_Id){
+        matchmakingNotify(s_Id, m_Id);
         stakeholders[s_Id].matchesId.push(m_Id);
     }
 
