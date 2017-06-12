@@ -1,4 +1,8 @@
 import { Meteor } from 'meteor/meteor';
+import { Promise } from 'meteor/promise';
+import colors from 'colors';
+
+colors.enabled = true;
 
 var callContract = function(contract, method, args){
   var req = prefix;
@@ -141,7 +145,7 @@ findOrigin = function(){
     totalGoThroughList.push(priorityList);
     visitedCounts.push(0);
 
-    success = findVisitNode();
+    success = Promise.await(findVisitNode());
 
     console.log("Entry Point Found: #"+origin);
     //return "success";
@@ -158,51 +162,6 @@ var checkExist = function(elem, data){
 }
 
 
-// var searchNeighborNodes = function(visitNode){
-//     var length = properties.length;
-//     //var length = Promise.await(callContract("usingProperty", "getPropertiesLength", []));
-//     var goThroughList = [];
-//
-//
-//     /*
-//             var newOwner = Promise.await(callContract("usingProperty", "getPartialProperty", [i]));
-//             var currentOwner = Promise.await(callContract("usingProperty", "getPartialProperty", [visitNode]));
-//             var currentType = Promise.await(callContract("usingProperty", "getPropertyType_Matchmaking", [i]));
-//             var newType = Promise.await(callContract("usingProperty", "getPropertyType_Matchmaking", [visitNode]));
-//     */
-//
-//     var k = 0;
-//
-//     for (var i = 0 ; i < length ; i++){
-//
-//       var newOwner = properties[i].owner;
-//       var currentOwner = properties[visitNode].owner;
-//       var currentType = properties[i].type;
-//       var newType = properties[visitNode].type;
-//         //if (i == visitNode || Promise.await(callContract("usingProperty", "checkTradeable", [i])) == 0 || Promise.await(callContract("usingProperty", "checkTradingStatus", [i]))){
-//         if (i == visitNode || properties[i].tradeable == 0 || properties[i].isTrading || newOwner == currentOwner || currentType == newType){
-//             k++;
-//             goThroughList.push({
-//               id:i,
-//               priority:-100000
-//             });
-//         }
-//
-//         if (k >= length-1){
-//             return "Fail";
-//         }
-//
-//
-//         var diff = returnPriority(visitNode, i);
-//         goThroughList.push({
-//           id:i,
-//           priority:diff
-//         });
-//     }
-//     return goThroughList;
-// }
-
-
 var searchNeighborNodes = function(visitNode){
     var length = properties.length;
     //var length = Promise.await(callContract("usingProperty", "getPropertiesLength", []));
@@ -216,7 +175,6 @@ var searchNeighborNodes = function(visitNode){
     */
 
     var k = 0;
-    console.log("visitNode"+visitNode);
     var currentOwner = properties[visitNode].owner;
     var newType = properties[visitNode].type;
 
@@ -230,12 +188,11 @@ var searchNeighborNodes = function(visitNode){
         }
 
 
-
         var diff = returnPriority(visitNode, i);
 
         if (diff <= 0){
           //this need to be modified to user config
-          continue
+          continue;
         }
 
         goThroughList.push({
@@ -243,6 +200,7 @@ var searchNeighborNodes = function(visitNode){
           priority:diff
         });
     }
+    console.log(colors.magenta("Current Node :"+visitNode));
 
     if (goThroughList.length == 0){
         return matchFail(0);
@@ -266,18 +224,14 @@ var searchNeighborNodes = function(visitNode){
 
 
     }
-    console.log("===")
-    for (var j = 0 ; j< goThroughList.length ; j++){
-      console.log(goThroughList[j])
-    }
-    console.log("===")
-
+    // console.log(visitedProperty)
+    // console.log("=====");
     // for (var j = 0 ; j< goThroughList.length ; j++){
-    //     if ($.inArray(goThroughList[j].id, visitedProperty) != -1 && goThroughList[j].id != origin){
-    //       goThroughList.splice(j, 1);
-    //       j--;
-    //     }
+    //   console.log(goThroughList[j].id);
     // }
+    // console.log("=====");
+
+
     return goThroughList;
 }
 
@@ -294,35 +248,54 @@ var findVisitNode = function(){
     if (found){
       break;
     }
+
     goThroughList= searchNeighborNodes(totalGoThroughList[visitingIndex][visitedCounts[visitingIndex]].id);
 
+    flag = false;
     // no neighbor nodes
     if (goThroughList == 0){
 
+
       // all choices have consumed
-      if (totalGoThroughList[visitingIndex].length-1 == visitedCounts[visitingIndex]){
+      if (totalGoThroughList[visitingIndex].length-1 <= visitedCounts[visitingIndex]){
         // fail if the beginning node also run out of choices
         if (visitingIndex == 0){
           return "Fail";
         // swtich to previous nodes & give up current node
         }else{
-          totalGoThroughList.splice(totalGoThroughList.length-1, 1);
-          visitedCounts.splice(visitedCounts.length-1, 1);
-          visitingIndex--;
+          flag = true;
         }
       // switch to secondary choice
       }else{
         visitedCounts[visitingIndex]++;
         visitedProperty[visitedProperty.length-1] = totalGoThroughList[visitingIndex][visitedCounts[visitingIndex]];
-        console.log("now visiting index: " + visitingIndex+", and now switch to prioity #"+visitedCounts[visitingIndex])
+        console.log(colors.green('[System Log]')+" Now visiting index: " + visitingIndex +", and now switch to prioity #"+(visitedCounts[visitingIndex]+1)+": "+totalGoThroughList[visitingIndex][visitedCounts[visitingIndex]].id);
+        continue;
 
       }
-      continue;
     }
+    if (!flag)
+      registerNode();
 
+    console.log(visitedCounts[visitingIndex]);
+    while (flag){
+      visitedProperty.splice(visitedProperty.length-1, 1);
+      totalGoThroughList.splice(totalGoThroughList.length-1, 1);
+      visitedCounts.splice(visitedCounts.length-1, 1);
+      visitingIndex--;
+      console.log(totalGoThroughList[visitingIndex][0])
+      if (totalGoThroughList[visitingIndex].length-1 >= (visitedCounts[visitingIndex]+1)){
+        visitedCounts[visitingIndex]++;
+        console.log(colors.green('[System Log]')+" Run out of alternative nodes! Switch to previous index #"+ visitingIndex +" node "+totalGoThroughList[visitingIndex][visitedCounts[visitingIndex]].id);
+        visitedProperty[visitedProperty.length-1] = totalGoThroughList[visitingIndex][visitedCounts[visitingIndex]];
+
+        flag = false;
+      }
+    }
     // register the accessible neighbor node
-    registerNode();
   }
+
+  return "Success!";
 }
 
 
@@ -331,180 +304,57 @@ var registerNode = function(){
   visitedCounts.push(0);
   visitingIndex++;
   visitedProperty.push(totalGoThroughList[visitingIndex][visitedCounts[visitingIndex]]);
-  // visitedProperty[visitingIndex] = totalGoThroughList[visitingIndex][visitedCounts[visitingIndex]];
 
 }
 
 var verifyNode = function(){
-  if (totalGoThroughList[visitingIndex][visitedCounts[visitingIndex]].id == origin && visitingIndex != 0){
-      console.log("----------------------------Success-----------------------------");
+  if (totalGoThroughList[visitingIndex][visitedCounts[visitingIndex]] != undefined && totalGoThroughList[visitingIndex][visitedCounts[visitingIndex]].id == origin && visitingIndex != 0){
+      console.log(colors.yellow("----------------------------Success-----------------------------"));
 
       for (var h = 0 ; h < visitedProperty.length ; h++){
-          //visitedOwners.push(Promise.await(callContract("usingProperty", "getPropertiesOwner", [visitedProperty[h]])));
           visitedOwner.push(properties[visitedProperty[h].id].owner);
           visitedPriority.push(visitedProperty[h].priority);
-
       }
 
       console.log("Visited Property "+visitedOwner);
       console.log("Visited priority "+visitedPriority);
 
-      //var matchId = Promise.await(callContract("Matchmaking", "getMatchMakingLength", []));
       var matchId = matches.length;
 
-      // Promise.await(callContract("Matchmaking", "gameCoreMatchingInit", ));
       var tempJson = {};
       tempJson.id = matchId;
       tempJson.visitedCount = visitedCount;
       tempJson.result = "null";
 
-
       tempJson.visitedOwners = visitedOwner;
       tempJson.visitedProperties = visitedProperty;
       tempJson.visitedPriorities = visitedPriority;
       matches.push(tempJson);
-      // for (var m = 0 ; m < visitedProperty.length ; m++){
-      //     Promise.await(callContract("Matchmaking", "gameCoreMatchingDetail", [matchId, visitedPriority[m], visitedOwners[m], visitedProperty[m]]));
-      // }
-      //$(".property").html(visitedProperty);
-      //$(".owner").html(visitedOwner);
+
       return true;
 
   }else{
       if (visitingIndex == 1){
-        console.log("-------------Commence Node Searching Process---------------");
+        console.log(colors.yellow("-------------Commence Node Searching Process---------------"));
       }
-      console.log("Current Node :"+visitedProperty[visitingIndex].id)
       return false;
-      // while (true){
-      //     if (findVisitNode(goThroughList[++visitIndex].id) == "Fail"){
-      //       console.log("Fail at"+ goThroughList[visitIndex-1].id);
-      //       return matchFail();
-      //     }else{
-      //       break;
-      //     }
-      // }
+
   }
 }
 
-// var findVisitNode = function(visitNode){
-//
-//
-//     var goThroughList= searchNeighborNodes(visitNode);
-//     if (goThroughList == "Fail"){
-//       return matchFail(0);
-//     }
-//     goThroughList = sort(goThroughList);
-//
-//
-//     if (goThroughList[0].priority <= 0){
-//       return matchFail(1);
-//     }
-//
-//     var flag = false;
-//     var visitIndex;
-//
-//     for (var j = 0 ; j< properties.length ; j++){
-//         flag = checkExist(goThroughList[j].id, visitedProperty);
-//         if (flag){
-//             visitIndex = j;
-//             break;
-//         }
-//         //if (!flag && j == (getPropertyLength(1)-1)){
-//         if (!flag && j == properties.length-1){
-//
-//             return matchFail();
-//         }
-//     }
-//
-//
-//     visitedCount++;
-//     visitedProperty[visitedCount] = goThroughList[visitIndex];
-//     //visitedOwner[visitedCount] = properties[goThroughList[visitIndex]].owner
-//
-//
-//     if (goThroughList[visitIndex].id == origin){
-//         console.log("----------------------------Success-----------------------------");
-//
-//         for (var h = 0 ; h < visitedProperty.length ; h++){
-//             //visitedOwners.push(Promise.await(callContract("usingProperty", "getPropertiesOwner", [visitedProperty[h]])));
-//             visitedOwner.push(properties[visitedProperty[h].id].owner);
-//             visitedPriority.push(visitedProperty[h].priority);
-//         }
-//
-//         //var matchId = Promise.await(callContract("Matchmaking", "getMatchMakingLength", []));
-//         var matchId = matches.length;
-//
-//         // Promise.await(callContract("Matchmaking", "gameCoreMatchingInit", ));
-//         var tempJson = {};
-//         tempJson.id = matchId;
-//         tempJson.visitedCount = visitedCount;
-//         tempJson.result = "null";
-//
-//
-//         tempJson.visitedOwners = visitedOwner;
-//         tempJson.visitedProperties = visitedProperty;
-//         tempJson.visitedPriorities = visitedPriority;
-//         matches.push(tempJson);
-//         // for (var m = 0 ; m < visitedProperty.length ; m++){
-//         //     Promise.await(callContract("Matchmaking", "gameCoreMatchingDetail", [matchId, visitedPriority[m], visitedOwners[m], visitedProperty[m]]));
-//         // }
-//         //$(".property").html(visitedProperty);
-//         //$(".owner").html(visitedOwner);
-//         return matchSuccess();
-//
-//     }else{
-//         if (visitNode == origin){
-//           console.log("-------------Commence Node Searching Process---------------");
-//         }
-//         console.log("Current Node :"+goThroughList[visitIndex].id)
-//         while (true){
-//             if (findVisitNode(goThroughList[++visitIndex].id) == "Fail"){
-//               console.log("Fail at"+ goThroughList[visitIndex-1].id);
-//               return matchFail();
-//             }else{
-//               break;
-//             }
-//         }
-//     }
-//
-// }
-//
 
 var returnPriority = function(visitNode, i){
-/*
-    var owner = properties[i].owner;
-    //var owner = Promise.await(callContract("usingProperty", "getPartialProperty", [i]));
-    //owner = Promise.await(callContract("Congress", "stakeholderId", []));
-
-    //var self_Importance = Promise.await(callContract("usingProperty", "getPropertyTypeRating_Matchmaking", [i, owner]));
-    var self_Importance = propertyType[properties[i].type].rating[owner];
-
-    //var currentRating = Promise.await(callContract("usingProperty", "getPropertyTypeRating_Matchmaking", [visitNode, owner]));
-    var currentRating = propertyType[properties[visitNode].type].rating[owner];
-
-    var diff = currentRating - self_Importance;
-    //var tradeableCount = Promise.await(callContract("usingProperty", "checkTradeable", [i]));
-
-    // -------for removal------
-    //var tradeableCount = properties[i].tradeable;
-    //tradeableCount = (tradeableCount/10)%10;
-    //diff += diff/10*tradeableCount;
-
-    return diff;
-    */
     var owner = properties[i].owner;
     return propertyType[properties[visitNode].type].rating[owner];
-
 }
 
 var matchFail = function(errCode){
   switch (errCode){
     case 0:
-      console.log("[Error] No available neighbor nodes");
+      console.log(colors.red('[Error Log]')+" No available neighbor nodes");
       break;
     case 1:
-      console.log("[Error] No unvisited neighbor nodes left");
+      console.log(colors.red('[Error Log]')+" No unvisited neighbor nodes left");
       break;
   }
   return 0;
