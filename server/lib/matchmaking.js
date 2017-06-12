@@ -1,8 +1,5 @@
 import { Meteor } from 'meteor/meteor';
 import { Promise } from 'meteor/promise';
-import colors from 'colors';
-
-colors.enabled = true;
 
 initData = function(){
 

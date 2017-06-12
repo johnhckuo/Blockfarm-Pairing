@@ -4,6 +4,7 @@ import { Session } from 'meteor/session';
 import { Meteor } from 'meteor/meteor';
 
 import './main.html';
+import './matchUI.js';
 
 Template.index.onCreated(async function helloOnCreated() {
 
