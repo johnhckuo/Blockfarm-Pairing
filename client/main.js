@@ -22,6 +22,8 @@ Template.index.onCreated(async function helloOnCreated() {
 
 });
 
+
+
 Template.index.events({
   '.click .fetch':function(e){
 

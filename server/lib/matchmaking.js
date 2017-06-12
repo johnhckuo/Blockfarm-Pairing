@@ -180,11 +180,11 @@ findOrigin = function(){
     }
     priorityList = sort(priorityList);
 
-
     if (priorityList.length == 0){
       matchFail(2);
       return "Fail";
     }
+
     origin = priorityList[0].id;
 
     visitedCount = 0;
@@ -371,7 +371,7 @@ var verifyNode = function(){
 
       var tempJson = {};
       tempJson.id = matchId;
-      tempJson.visitedCount = visitedCount;
+      tempJson.visitedCount = visitedCounts;
       tempJson.result = "null";
 
       tempJson.visitedOwners = visitedOwner;
