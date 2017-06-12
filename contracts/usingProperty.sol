@@ -14,7 +14,6 @@ contract usingProperty{
         uint id;
         uint[] rating;
         uint averageRating;
-        bytes32[] img;
     }
 
     PropertyType[] public propertyTypeList;
@@ -23,7 +22,7 @@ contract usingProperty{
         bytes32 name;
         uint id;
         uint propertyCount;
-        address owner;
+        uint owner;
         bytes32 extraData;
         uint propertyType;
         uint tradeable;
@@ -42,13 +41,11 @@ contract usingProperty{
         owner = msg.sender;
     }
 
-    function getProperty(uint i, address _from) constant returns(uint, uint, bytes32, uint, uint, bytes32){
-        if(propertyList[i].owner == _from){
-            return ( propertyList[i].id, propertyList[i].propertyType, propertyTypeList[propertyList[i].propertyType].name, propertyList[i].propertyCount, propertyList[i].tradeable, propertyTypeList[propertyList[i].propertyType].img[3]);
-        }
+    function getProperty(uint i) constant returns(uint, uint, bytes32, uint, uint){
+        return ( propertyList[i].id, propertyList[i].propertyType, propertyTypeList[propertyList[i].propertyType].name, propertyList[i].propertyCount, propertyList[i].tradeable);
     }
 
-    function addProperty(bytes32 _name, uint _propertyCount, bytes32 _extraData, uint _type, uint _tradeable) returns(uint _id){
+    function addProperty(bytes32 _name, uint s_Id, uint _propertyCount, bytes32 _extraData, uint _type, uint _tradeable) returns(uint _id){
         bool flag = true;
         for (uint w = 0 ; w < propertyTypeList.length ; w++){
             if (_type == propertyTypeList[w].id){
@@ -67,7 +64,7 @@ contract usingProperty{
         prop.name = _name;
         prop.id= _id;
         prop.propertyCount= _propertyCount;
-        prop.owner= msg.sender;
+        prop.owner= s_Id;
         prop.extraData= _extraData;
         prop.propertyType = _type;
         prop.tradeable = _tradeable;
@@ -88,7 +85,7 @@ contract usingProperty{
         return propertyList.length;
     }
 
-    function getPartialProperty(uint p_Id) constant returns(address){
+    function getPartialProperty(uint p_Id) constant returns(uint){
         return (propertyList[p_Id].owner);
     }
 
@@ -102,10 +99,12 @@ contract usingProperty{
     }
 
     function updatePropertyCount(uint _id, uint _propertyCount, uint _tradeable){
-        if(propertyList[_id].owner == msg.sender){
             propertyList[_id].propertyCount = _propertyCount;
             propertyList[_id].tradeable = _tradeable;
-        }
+    }
+
+    function getPropertyTypeRating(uint p_Id, uint s_Id) constant returns(uint){
+        return propertyTypeList[p_Id].rating[s_Id];
     }
 
     function getPropertyTypeRating_Matchmaking(uint p_Id, uint s_Id) constant returns(uint){
@@ -145,8 +144,7 @@ contract usingProperty{
 
     function getPropertiesOwner(uint visitedProperty) constant returns(uint){
          uint visitedOwner;
-         address owner = propertyList[visitedProperty].owner;
-         visitedOwner = congress.stakeholderId(owner);
+         visitedOwner = propertyList[visitedProperty].owner;
          return visitedOwner;
     }
 
@@ -185,9 +183,8 @@ contract usingProperty{
         prop.averageRating = 0;
     }
 
-    function getPropertyType(uint p_Id) constant returns(bytes32, uint, uint, uint){
-        uint s_Id = congress.stakeholderId(msg.sender);
-        return(propertyTypeList[p_Id].name, propertyTypeList[p_Id].id, propertyTypeList[p_Id].averageRating, propertyTypeList[p_Id].rating[s_Id]);
+    function getPropertyType(uint p_Id) constant returns(bytes32, uint, uint, uint[]){
+        return(propertyTypeList[p_Id].name, propertyTypeList[p_Id].id, propertyTypeList[p_Id].averageRating, propertyTypeList[p_Id].rating);
     }
 
     function getPropertyTypeId(uint p_Id) constant returns(uint){
