@@ -91,3 +91,56 @@
       Permission Denied
   {{/if}}
 </template>
+
+<template name="property">
+    <div class={{className}}>
+        <h2>{{stakeholder}}</h2>
+        <hr>
+        {{#each detail}}
+
+        <div class="empowerContent">
+            <span class="panelContainer {{propertyClass}}">
+                <label for="disabledTextInput">{{name}}</label>
+                <input type="range" class="range" min="0" max="100" step="1" value={{value}} style="  background-image:-webkit-linear-gradient(left ,#7D89DE 0%,#7D89DE {{value}}%,#444444 {{value}}%, #444444 100%);">
+            </span>
+        </div>
+        {{/each}}
+        <button type="button" class="btn btn-primary" id="newProperty" name="button">New</button>
+        <button name="button" class="btn btn-info" id="empowerTest">Calculate</button>
+        <button name="button" class="btn btn-info" id="next">Next</button>
+        <button name="button" class="btn btn-info" id="test">test</button>
+    </div>
+
+</template>
+
+<template name="newProperty">
+    <div class='propertyContainer {{propertyClass}}'>
+        <label for="disabledTextInput">{{name}}</label>
+        <label for="disabledTextInput">{{owner}}</label>
+        <button type="button" class="btn btn-danger addProperty" name="button">Add</button>
+    </div>
+</template>
+
+
+<template name="matchmaking">
+    <div class="matchmaking">
+        {{#each properties}}
+        {{> property}}
+        {{/each}}
+    </div>
+    <div class="barrier"></div>
+    <div class="hiddenDIV">
+        <h2>Adding New Properties</h2>
+        <hr>
+        PropertyType:
+        <select id="propertyType" name="propertyType" class="newProperty_input">
+            {{#each propertyTypes}}
+                <option value="{{propertyTypeId}}">{{name}}</option>
+            {{/each}}
+        </select>
+        Name:<input type="text" id="property_name" class="newProperty_input" value="" />
+        Count:<input type="text" id="property_count" class="newProperty_input" value="" />
+        Tradable:<input type="text" id="property_tradeable" class="newProperty_input" value="" />
+        <input type="button" id="property_button" class="newProperty_input" value="Submit" />
+    </div>
+</template>

@@ -8,3 +8,7 @@ Router.route('/', function () {
 Router.route('/manage', function () {
   this.render('manage');
 });
+
+Router.route('/matchmaking', function () {
+    this.render('matchmaking');
+});
