@@ -97,7 +97,7 @@ var visitedTradeable = [];
 // for confirm
 
 var matches = [];
-var matchesConfirmThreshold = 2;
+var matchesConfirmThreshold = 0;
 
 /* ----- Matchmaking Functions ----- */
 
@@ -431,23 +431,31 @@ var verifyNode = function(){
 
       console.log(tempJson.visitedOwners);
 
-      MatchmakingInstance.gameCoreMatchingInit(matchId, visitedOwner.length, "null", {from:web3.eth.accounts[currentAccount], gas:100000}, function(err, res){
+      MatchmakingInstance.gameCoreMatchingInit(visitedOwner.length, "null", {from:web3.eth.accounts[currentAccount], gas:100000}, function(err, res){
         if (err){
           console.log(err);
         }else{
-          gameCoreMatchingDetail(matchId, tempJson.visitedPriorities, tempJson.visitedOwners, tempJson.visitedProperties);
 
-          MatchmakingInstance.gameCoreMatchingDetail(matchId, tempJson.visitedPriorities, tempJson.visitedOwners, tempJson.visitedProperties, tempJson.visitedTradeable,  {from:web3.eth.accounts[currentAccount], gas:2000000}, function(err, res){
+          MatchmakingInstance.gameCoreMatchingDetail(tempJson.visitedPriorities, tempJson.visitedOwners, tempJson.visitedProperties, tempJson.visitedTradeable,  {from:web3.eth.accounts[currentAccount], gas:2000000}, function(err, res){
             if (err){
               console.log(err);
             }
-            return true;
+            MatchmakingInstance.getMatchMakingLength.call({from:web3.eth.accounts[currentAccount]}, function(err, res){
+              if (err){
+                console.log(err);
+              }
+              var length = res.c[0];
+              gameCoreMatchingDetail(length-1, tempJson.visitedPriorities, tempJson.visitedOwners, tempJson.visitedProperties);
+
+            });
 
           });
         }
 
 
       });
+
+
       return true;
 
 
@@ -492,82 +500,82 @@ var matchSuccess = function(){
 
 var matches = [];
 
-function checkConfirmation(){
+checkConfirmation = async function(){
     var length;
-    MatchmakingInstance.getMatchMakingLength.call(function(err, res){
-      if (err){
-        console.log(err);
-      }else{
-        length = res.c[0];
+    var length = await MatchmakingInstance.getMatchMakingLength.call({from:web3.eth.accounts[currentAccount]}).c[0];
+    console.log("fff")
+    for (var i = 0 ; i < length ; i++){
+      var res = await MatchmakingInstance.getMatchMaking.call(i, {from:web3.eth.accounts[currentAccount]});
+      var match = { visitedPriorities: res[0], visitedOwners: res[1], visitedProperties: res[2], visitedTradeable: res[3], confirmation: res[4], visitedCount:res[5], result:res[6] };
+      console.log(i)
+      console.log(length)
 
-        for (var i = 0 ; i < length ; i++){
-          MatchmakingInstance.getMatchMaking.call(i, function(err, res){
+      if (i < length - matchesConfirmThreshold){
+        var confirm = 0;
+        for (var j = 0 ; j < match.confirmation.length-1; j++){
+            if (match.confirmation[j].c[0] == 1){
+                confirm++;
+            }
+            var result = await CongressInstance.deleteMatchesId(match[i].visitedOwners[j].c[0], match[i].id, {from:web3.eth.accounts[currentAccount], gas:2000000}, function(err, res){
               if (err){
                 console.log(err);
-              }else{
-                var match = { visitedPriorities: res[0], visitedOwners: res[1], visitedProperties: res[2], visitedTradeable: res[3], confirmation: res[4], visitedCount:res[5], result:res[6] };
-                matches.push(match);
-
-                for (var j = 0 ; j < matches.length - matchesConfirmThreshold ; j++){
-                    var confirm = 0;
-                    for (var i = 0 ; i < matches[j].confirmation.length-1; i++){
-                        if (matches[j].confirmation[i] == 1){
-                            confirm++;
-                        }
-                        congress.deleteMatchesId(matches[j].visitedOwners[i], matches[j].id);
-                    }
-
-                    var totalCount = matches[j].visitedOwners.length;
-
-                    if (confirm/totalCount <= 0.5){
-                        matches[j].result = "false";
-                        return false;
-                    }else{
-                        matches[j].result = "true";
-                        transferOwnership(j);
-                        return true;
-                    }
-                }
-              }
-          });
-        }
-      }
-    });
-}
-
-transferOwnership = function(m_Id){
-    var length;
-    usingPropertyInstance.getPropertyTypeLength.call({from:web3.eth.accounts[currentAccount]}, function(err, res){
-      if (err){
-        console.log(err);
-      }else{
-        length = res.c[0];
-        var visitedLength = matches[m_Id].visitedOwners.length-1;
-        for (var i = 0 ; i < visitedLength; i++){
-            var s_Id = matches[m_Id].visitedOwners[i+1];
-            var currentPID = matches[m_Id].visitedProperties[i];
-            var propertyType = currentPID % length;
-            var receivedPID = s_Id*length + propertyType;
-
-            usingPropertyInstance.updateOwnershipStatus(receivedPID, currentPID, {from:web3.eth.accounts[currentAccount], gas:2000000}, function(err, res){
-              if (err){
-                console.log(err);
-              }else{
-                //cancel isTrading status
-                usingPropertyInstance.updateTradingStatus(currentPID, false, {from:web3.eth.accounts[currentAccount], gas:2000000}, function(err, res){
-                  if (err){
-                    console.log(err);
-
-                  }else{
-                    console.log("");
-                  }
-                });
               }
             });
         }
-      }
-    })
 
+        var totalCount = match.visitedOwners.length;
+        console.log(confirm);
+        if (confirm/totalCount <= 0.5){
+          console.log("fail");
+            match.result = "false";
+            return false;
+        }else{
+            console.log("pass")
+            match.result = "true";
+            transferOwnership(i);
+            return true;
+        }
+      }
+      }
+}
+
+transferOwnership = async function(m_Id){
+    var length;
+    var length = await usingPropertyInstance.getPropertyTypeLength.call({from:web3.eth.accounts[currentAccount]}).c[0];
+
+    var data = await MatchmakingInstance.getMatchMaking.call(m_Id, {from:web3.eth.accounts[currentAccount]});
+    var owners = data[1];
+    var properties = data[2];
+    var tradeables = data[3];
+
+    console.log(owners);
+    console.log(properties)
+    var visitedLength = owners.length-1;
+    for (var i = 0 ; i < visitedLength; i++){
+
+        var s_Id = owners[i+1];
+        var currentPID = properties[i];
+        var propertyType = currentPID % length;
+        var receivedPID = s_Id*length + propertyType;
+
+        var res1 = await usingPropertyInstance.updateOwnershipStatus(receivedPID, currentPID, {from:web3.eth.accounts[currentAccount], gas:2000000}, function(err, res){
+          if (err){
+            console.log(err);
+          }
+        })
+
+        //cancel isTrading status
+        var res2 = await usingPropertyInstance.updateTradingStatus(currentPID, false, {from:web3.eth.accounts[currentAccount], gas:2000000}, function(err, res){
+          if (err){
+            console.log(err);
+          }
+
+        })
+    //     var res = await usingPropertyInstance.updateOwnershipStatus(receivedPID, currentPID, {from:web3.eth.accounts[currentAccount], gas:2000000});
+    //
+    //     var res2 = await usingPropertyInstance.updateTradingStatus(currentPID, false, {from:web3.eth.accounts[currentAccount], gas:2000000});
+    // }
+  }
 
 }
 
@@ -590,8 +598,6 @@ function gameCoreMatchingDetail(_matchId, _priority, _owner, _property){
           }
         });
     }
-
-
 
 }
 

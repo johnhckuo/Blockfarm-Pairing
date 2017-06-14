@@ -52,11 +52,14 @@ Template.index.events({
       //var res = await callPromise("matchmaking");
       //alert(res);
       findOrigin();
+      console.log(properties);
   },
   'click .confirmingBtn':async function(e){
       //var res = await callPromise("matchmaking");
       //alert(res);
-      transferOwnership(0);
+      checkConfirmation();
+      $(".systemInfo").css("transform", "translateX(600px)");
+
   },
   'click .matchesBtn':function(event){
     var m_Id = $(event.target).attr("class").split("matchBtn")[1];

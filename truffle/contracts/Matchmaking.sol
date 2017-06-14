@@ -50,15 +50,16 @@ contract Matchmaking{
         return matches.length;
     }
 
-    function gameCoreMatchingInit(uint _matchId, uint _visitedCount, string _result){
-        matches.length++;
+    function gameCoreMatchingInit(uint _visitedCount, string _result){
+        uint _matchId = matches.length++;
 
         matches[_matchId].id = _matchId;
         matches[_matchId].visitedCount = _visitedCount;
         matches[_matchId].result = _result;
     }
 
-    function gameCoreMatchingDetail(uint _matchId, int256[] _priority, uint[] _owner, uint[] _property, uint[] _tradeables){
+    function gameCoreMatchingDetail(int256[] _priority, uint[] _owner, uint[] _property, uint[] _tradeables){
+        uint _matchId = matches.length-1;
         matches[_matchId].visitedPriorities = _priority;
         matches[_matchId].visitedOwners = _owner;
         matches[_matchId].visitedProperties = _property;

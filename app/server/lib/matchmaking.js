@@ -89,6 +89,7 @@ var actualVisitIndex = [];
 var origin;
 var visitedOwner = [];
 var visitedPriority = [];
+var visitedTradeable = [];
 
 // for confirm
 
@@ -136,6 +137,7 @@ findOrigin = function(){
     origin = null;
     visitedOwner = [];
     visitedPriority = [];
+    visitedTradeable = [];
 
     visitedCounts = [];
     totalGoThroughList = [];
@@ -175,7 +177,8 @@ findOrigin = function(){
 
         priorityList.push({
           id:i,
-          priority:diff
+          priority:diff,
+          tradeable:properties[i].tradeable
         });
     }
     priorityList = sort(priorityList);
@@ -188,7 +191,7 @@ findOrigin = function(){
     origin = priorityList[0].id;
 
     visitedCount = 0;
-    visitedProperty.push({id : origin, priority : priorityList[0].priority})
+    visitedProperty.push({id : origin, priority : priorityList[0].priority, tradeable:priorityList[0].tradeable})
 
     totalGoThroughList.push(priorityList);
     visitedCounts.push(0);
@@ -245,7 +248,8 @@ var searchNeighborNodes = function(visitNode){
 
         goThroughList.push({
           id:i,
-          priority:diff
+          priority:diff,
+          tradeable:properties[i].tradeable
         });
     }
     console.log("%c[System Log] Current Node :"+visitNode, "color:#FF44AA");
@@ -362,6 +366,8 @@ var verifyNode = function(){
       for (var h = 0 ; h < visitedProperty.length ; h++){
           visitedOwner.push(properties[visitedProperty[h].id].owner);
           visitedPriority.push(visitedProperty[h].priority);
+          visitedTradeable.push(visitedProperty[h].tradeable);
+
       }
 
       console.log("Visited Property "+visitedOwner);
@@ -374,10 +380,66 @@ var verifyNode = function(){
       tempJson.visitedCount = visitedCounts;
       tempJson.result = "null";
 
-      tempJson.visitedOwners = visitedOwner;
-      tempJson.visitedProperties = visitedProperty;
-      tempJson.visitedPriorities = visitedPriority;
+
+      tempJson.visitedOwners = [];
+      tempJson.visitedProperties = [];
+      tempJson.visitedPriorities = [];
+      tempJson.visitedTradeable = [];
+
+      for (var i = 0 ; i < visitedProperty.length; i++){
+        tempJson.visitedProperties.push(visitedProperty[i].id);
+
+        if (visitedOwner[i].c){
+          tempJson.visitedOwners.push(visitedOwner[i].c[0]);
+
+        }else{
+          tempJson.visitedOwners.push(visitedOwner[i]);
+
+        }
+
+        if (visitedPriority[i].c){
+          tempJson.visitedPriorities.push(visitedPriority[i].c[0]);
+
+        }else{
+          tempJson.visitedPriorities.push(visitedPriority[i]);
+
+        }
+
+        if (visitedTradeable[i].c){
+          tempJson.visitedTradeable.push(visitedTradeable[i].c[0]);
+
+        }else{
+          tempJson.visitedTradeable.push(visitedTradeable[i]);
+
+        }
+
+
+      }
       matches.push(tempJson);
+
+      MatchmakingInstance.gameCoreMatchingInit(visitedOwner.length, "null", {from:web3.eth.accounts[currentAccount], gas:100000}, function(err, res){
+        if (err){
+          console.log(err);
+        }else{
+
+          MatchmakingInstance.gameCoreMatchingDetail(tempJson.visitedPriorities, tempJson.visitedOwners, tempJson.visitedProperties, tempJson.visitedTradeable,  {from:web3.eth.accounts[currentAccount], gas:2000000}, function(err, res){
+            if (err){
+              console.log(err);
+            }
+            MatchmakingInstance.getMatchMakingLength.call({from:web3.eth.accounts[currentAccount]}, function(err, res){
+              if (err){
+                console.log(err);
+              }
+              var length = res.c[0];
+              gameCoreMatchingDetail(length-1, tempJson.visitedPriorities, tempJson.visitedOwners, tempJson.visitedProperties);
+
+            });
+
+          });
+        }
+
+
+      });
 
       return true;
 

@@ -72,12 +72,12 @@ contract usingProperty{
     }
 
     function removeProperty(uint _id){
-        if (getPropertiesLength() == 0) throw;        
+        if (getPropertiesLength() == 0) throw;
 
         for (uint i = _id; i<propertyList.length; i++){
             propertyList[i] = propertyList[i+1];
-        }  
-        delete propertyList[propertyList.length-1];      
+        }
+        delete propertyList[propertyList.length-1];
         propertyList.length--;
     }
 
@@ -193,6 +193,16 @@ contract usingProperty{
 
     function getPropertyTypeLength() constant returns(uint){
         return propertyTypeList.length;
+    }
+
+    function updatePropertyOwner(uint receivedPID, uint currentPID){
+        propertyList[receivedPID].propertyCount = propertyList[receivedPID].tradeable;
+        propertyList[currentPID].propertyCount = propertyList[currentPID].tradeable;
+
+        uint tempOwner = propertyList[receivedPID].owner;
+        propertyList[receivedPID].owner = propertyList[currentPID].owner;
+        propertyList[currentPID].owner = tempOwner;
+
     }
 
     /// @dev Does a byte-by-byte lexicographical comparison of two strings.

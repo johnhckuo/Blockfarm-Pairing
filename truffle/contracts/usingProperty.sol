@@ -41,8 +41,8 @@ contract usingProperty{
         owner = msg.sender;
     }
 
-    function getProperty(uint i) constant returns(uint, uint, bytes32, uint, uint, uint){
-        return ( propertyList[i].id, propertyList[i].propertyType, propertyList[i].name, propertyList[i].propertyCount, propertyList[i].tradeable, propertyList[i].owner);
+    function getProperty(uint i) constant returns(uint, uint, bytes32, uint, uint){
+        return ( propertyList[i].id, propertyList[i].propertyType, propertyTypeList[propertyList[i].propertyType].name, propertyList[i].propertyCount, propertyList[i].tradeable);
     }
 
     function addProperty(bytes32 _name, uint s_Id, uint _propertyCount, bytes32 _extraData, uint _type, uint _tradeable) returns(uint _id){

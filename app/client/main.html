@@ -98,9 +98,11 @@
   {{/if}}
 </template>
 
-<template name="property">
+<template name="propertyType">
     <div class={{className}}>
-        <h2>{{stakeholder}}</h2>
+        <h2>{{stakeholder}}
+            <input type="hidden" id="stakeholder_Id" value="{{stakeholder_Id}}" />
+        </h2>
         <hr>
         {{#each detail}}
 
@@ -115,22 +117,34 @@
         <button name="button" class="btn btn-info" id="empowerTest">Calculate</button>
         <button name="button" class="btn btn-info" id="next">Next</button>
     </div>
-
 </template>
 
-<template name="newProperty">
-    <div class='propertyContainer {{propertyClass}}'>
-        <label for="disabledTextInput">{{name}}</label>
-        <label for="disabledTextInput">{{owner}}</label>
-        <button type="button" class="btn btn-danger addProperty" name="button">Add</button>
+<template name="property">
+    <div class={{className}}>
+        <h2>
+            {{name}}
+        </h2>
+        <hr>
+        {{#each OwnedProperty}}
+        <div class="PropertyContent">
+            <span>
+                <label for="disabledTextInput">{{name}}</label>
+          </span>
+        </div>
+        {{/each}}
+        <button name="button" class="btn btn-info" id="PropertyNext">Next</button>
     </div>
 </template>
 
-
 <template name="matchmaking">
+    <button name="button" class="btn btn-info" id="test">test</button>
     <div class="matchmaking">
-        <button name="button" class="btn btn-info" id="test">test</button>
         {{#each properties}}
+        {{> propertyType}}
+        {{/each}}
+    </div>
+    <div class="OwnedProperty">
+        {{#each OwnedProperty}}
         {{> property}}
         {{/each}}
     </div>
@@ -138,6 +152,12 @@
     <div class="hiddenDIV">
         <h2>Adding New Properties</h2>
         <hr>
+        Owner:
+        <select id="propertyOwner" name="propertyOwner" class="newProperty_input">
+            {{#each Stakeholders}}
+            <option value="{{stakeholderId}}">{{name}}</option>
+            {{/each}}
+        </select>
         PropertyType:
         <select id="propertyType" name="propertyType" class="newProperty_input">
             {{#each propertyTypes}}
@@ -145,8 +165,6 @@
             {{/each}}
         </select>
         Name:<input type="text" id="property_name" class="newProperty_input" value="" />
-        Count:<input type="text" id="property_count" class="newProperty_input" value="" />
-        Tradable:<input type="text" id="property_tradeable" class="newProperty_input" value="" />
         <input type="button" id="property_button" class="newProperty_input" value="Submit" />
     </div>
 </template>
