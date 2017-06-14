@@ -70,10 +70,16 @@
     "1497318030132": {
       "events": {},
       "links": {},
-      "address": "0xef4c6bf4947f65357a27ebf735be17e722fe5cd0",
-      "updated_at": 1497318660128
+      "address": "0x7654d5ae68f8ffa0c66bf917e2e6d532997013c6",
+      "updated_at": 1497441572735
+    },
+    "1497441733671": {
+      "events": {},
+      "links": {},
+      "address": "0x6c04ef22f8cf4de6b43d3e8ff1caa19abe9389ea",
+      "updated_at": 1497441743894
     }
   },
   "schema_version": "0.0.5",
-  "updated_at": 1497318660128
+  "updated_at": 1497441743894
 }

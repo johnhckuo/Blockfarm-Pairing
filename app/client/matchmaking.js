@@ -1,8 +1,6 @@
 import { Meteor } from 'meteor/meteor';
 import { Promise } from 'meteor/promise';
-import colors from 'colors';
 
-colors.enabled = true;
 initData = function(){
 
   usingPropertyInstance.getPropertyTypeLength.call({ from: web3.eth.accounts[currentAccount], gas: 2000000 }, function (err, res) {
@@ -133,8 +131,8 @@ var calculateAverage = function(){
   }
 }
 
-findOrigin = function(){
-
+findOrigin = async function(){
+    console.log("start");
     //reset
     visitedProperty = [];
     visitedCount = 0;  //in order to ignore the rest of the array elem
@@ -201,7 +199,7 @@ findOrigin = function(){
     totalGoThroughList.push(priorityList);
     visitedCounts.push(0);
 
-    success = findVisitNode();
+    success = await findVisitNode();
 
     console.log("Entry Point Found: #"+origin);
     //return "success";
@@ -222,6 +220,7 @@ var searchNeighborNodes = function(visitNode){
     var length = properties.length;
     //var length = Promise.await(callContract("usingProperty", "getPropertiesLength", []));
     goThroughList = [];
+    console.log("start searching");
 
     /*
             var newOwner = Promise.await(callContract("usingProperty", "getPartialProperty", [i]));
@@ -365,7 +364,9 @@ var registerNode = function(){
 
 }
 
-var verifyNode = function(){
+var verifyNode =  function(){
+  console.log("start searching");
+
   if (totalGoThroughList[visitingIndex][visitedCounts[visitingIndex]] != undefined && totalGoThroughList[visitingIndex][visitedCounts[visitingIndex]].id == origin && visitingIndex != 0){
       console.log("%c----------------------------Success-----------------------------", "color:#00ffff");
       var visitedProperty_temp = [];
@@ -431,29 +432,13 @@ var verifyNode = function(){
 
       console.log(tempJson.visitedOwners);
 
-      MatchmakingInstance.gameCoreMatchingInit(visitedOwner.length, "null", {from:web3.eth.accounts[currentAccount], gas:100000}, function(err, res){
-        if (err){
-          console.log(err);
-        }else{
+      var res = MatchmakingInstance.gameCoreMatchingInit(visitedOwner.length, "null", {from:web3.eth.accounts[currentAccount], gas:100000});
 
-          MatchmakingInstance.gameCoreMatchingDetail(tempJson.visitedPriorities, tempJson.visitedOwners, tempJson.visitedProperties, tempJson.visitedTradeable,  {from:web3.eth.accounts[currentAccount], gas:2000000}, function(err, res){
-            if (err){
-              console.log(err);
-            }
-            MatchmakingInstance.getMatchMakingLength.call({from:web3.eth.accounts[currentAccount]}, function(err, res){
-              if (err){
-                console.log(err);
-              }
-              var length = res.c[0];
-              gameCoreMatchingDetail(length-1, tempJson.visitedPriorities, tempJson.visitedOwners, tempJson.visitedProperties);
+      var res2 = MatchmakingInstance.gameCoreMatchingDetail(tempJson.visitedPriorities, tempJson.visitedOwners, tempJson.visitedProperties, tempJson.visitedTradeable,  {from:web3.eth.accounts[currentAccount], gas:2000000});
 
-            });
+      var length = MatchmakingInstance.getMatchMakingLength.call({from:web3.eth.accounts[currentAccount]}).c[0];
 
-          });
-        }
-
-
-      });
+      gameCoreMatchingDetail(length-1, tempJson.visitedPriorities, tempJson.visitedOwners, tempJson.visitedProperties);
 
 
       return true;
